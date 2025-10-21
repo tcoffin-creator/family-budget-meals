@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Test Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #667eea; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #5a6fd8; }
+        .result { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Quick Family Budget Meals Test</h1>
+    
+    <form id="quick-test-form">
+                <div>
+            <label for="budget">Weekly Budget ($):</label>
+            <input type="number" id="budget" value="75" min="20" step="5" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="adults">Adults</label>
+            <input type="number" id="adults" value="2" min="1" max="10" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="kids">Kids</label>
+            <input type="number" id="kids" value="2" min="0" max="10">
+        </div>
+        
+        <div class="form-group">
+            <label for="kidAges">Kids Ages (comma separated)</label>
+            <input type="text" id="kidAges" value="8, 12" placeholder="e.g., 5, 8, 12">
+        </div>
+        
+        <div class="form-group">
+            <label for="zipcode">Zip Code</label>
+            <input type="text" id="zipcode" value="12345" pattern="[0-9]{5}" maxlength="5" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="meals">Number of Meals</label>
+            <select id="meals">
+                <option value="7">7 meals (1 week)</option>
+                <option value="14">14 meals (2 weeks)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="allergies">Allergies/Dislikes</label>
+            <textarea id="allergies" rows="2" placeholder="e.g., nuts, dairy, spicy food"></textarea>
+        </div>
+        
+        <button type="submit">Generate Meal Plan</button>
+    </form>
+    
+    <div id="results" class="result" style="display: none;">
+        <h3>Results:</h3>
+        <div id="output"></div>
+    </div>
+
+    <!-- Load app scripts -->
+    <script src="js/data/recipes.js"></script>
+    <script src="js/data/prices.js"></script>
+    <script src="js/utils/pricing.js"></script>
+    <script src="js/utils/mealSelector.js"></script>
+    <script src="js/utils/shoppingList.js"></script>
+
+    <script>
+        document.getElementById('quick-test-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const results = document.getElementById('results');
+            const output = document.getElementById('output');
+            
+            results.style.display = 'block';
+            output.innerHTML = 'Generating meal plan...';
+            
+            try {
+                // Get form data
+                const params = {
+                    weeklyBudget: parseFloat(document.getElementById('budget').value),
+                    adults: parseInt(document.getElementById('adults').value),
+                    kids: parseInt(document.getElementById('kids').value),
+                    kidAges: document.getElementById('kidAges').value,
+                    location: `Zip: ${document.getElementById('zipcode').value}`,
+                    mealsCount: parseInt(document.getElementById('meals').value),
+                    allergies: document.getElementById('allergies').value
+                };
+                
+                // Create meal selector
+                const mealSelector = new MealSelector(RECIPES_DATABASE);
+                
+                // Generate meal plan
+                const mealPlan = mealSelector.selectMeals(params);
+                const totalCost = mealSelector.getTotalCost();
+                
+                // Display results
+                let html = `<h4>Meal Plan Generated!</h4>`;
+                html += `<p><strong>Budget:</strong> $${params.weeklyBudget}</p>`;
+                html += `<p><strong>Estimated Cost:</strong> $${totalCost.toFixed(2)}</p>`;
+                html += `<p><strong>Family Size:</strong> ${params.adults} adults, ${params.kids} kids</p>`;
+                html += `<p><strong>Zip Code:</strong> ${document.getElementById('zipcode').value}</p>`;
+                
+                html += `<h4>Selected Meals (${mealPlan.length}):</h4><ul>`;
+                mealPlan.forEach(meal => {
+                    html += `<li><strong>${meal.name}</strong> - $${meal.pricing.totalCost.toFixed(2)} (serves ${meal.scaledServings})</li>`;
+                });
+                html += '</ul>';
+                
+                // Generate shopping list
+                const ingredientMap = new Map();
+                let shoppingTotal = 0;
+                
+                mealPlan.forEach(meal => {
+                    meal.ingredients.forEach(ingredient => {
+                        const key = ingredient.name.toLowerCase();
+                        const pricing = getIngredientPrice(ingredient.name, ingredient.amount, ingredient.unit, document.getElementById('zipcode').value);
+                        
+                        if (ingredientMap.has(key)) {
+                            const existing = ingredientMap.get(key);
+                            existing.amount += ingredient.amount;
+                            existing.price += pricing.price;
+                        } else {
+                            ingredientMap.set(key, {
+                                name: ingredient.name,
+                                amount: ingredient.amount,
+                                unit: ingredient.unit,
+                                price: pricing.price
+                            });
+                        }
+                        shoppingTotal += pricing.price;
+                    });
+                });
+                
+                const shoppingList = Array.from(ingredientMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+                
+                html += `<h4>Shopping List (${shoppingList.length} items):</h4>`;
+                html += `<ul>`;
+                shoppingList.forEach(item => {
+                    const amount = item.amount % 1 === 0 ? item.amount.toString() : item.amount.toFixed(2);
+                    html += `<li>${amount} ${item.unit} ${item.name} - $${item.price.toFixed(2)}</li>`;
+                });
+                html += `</ul>`;
+                html += `<p><strong>Total Shopping Cost: $${shoppingTotal.toFixed(2)}</strong></p>`;
+                
+                if (totalCost <= params.weeklyBudget) {
+                    html += `<p style="color: green;"><strong>✅ Within Budget!</strong> (Saved $${(params.weeklyBudget - totalCost).toFixed(2)})</p>`;
+                } else {
+                    html += `<p style="color: orange;"><strong>⚠️ Slightly Over Budget</strong> by $${(totalCost - params.weeklyBudget).toFixed(2)}</p>`;
+                }
+                
+                output.innerHTML = html;
+                
+            } catch (error) {
+                output.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${error.message}</p>`;
+                console.error('Test error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "name": "family-budget-meals",
+  "version": "1.0.0",
+  "description": "Smart meal planning app that helps families create budget-friendly meal plans optimized for shared ingredients and real-world pricing",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "dev": "python3 -m http.server 8080",
+    "test": "open demo.html",
+    "build": "echo 'No build process needed - vanilla HTML/CSS/JS'"
+  },
+  "keywords": [
+    "meal-planning",
+    "budget",
+    "family",
+    "recipes",
+    "grocery",
+    "shopping-list",
+    "nutrition",
+    "cost-optimization"
+  ],
+  "author": "Family Budget Meals",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tcoffin-creator/family-budget-meals.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tcoffin-creator/family-budget-meals/issues"
+  },
+  "homepage": "https://github.com/tcoffin-creator/family-budget-meals#readme",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11"
+  ],
+  "features": {
+    "smart_meal_planning": {
+      "budget_optimization": true,
+      "family_size_scaling": true,
+      "allergy_filtering": true,
+      "ingredient_optimization": true
+    },
+    "real_world_pricing": {
+      "walmart_based_prices": true,
+      "regional_adjustments": true,
+      "bulk_buying_optimization": true,
+      "cost_tracking": true
+    },
+    "smart_shopping_lists": {
+      "categorized_lists": true,
+      "consolidated_quantities": true,
+      "store_optimized_layout": true,
+      "cost_breakdown": true
+    },
+    "recipe_management": {
+      "comprehensive_database": true,
+      "nutritional_information": true,
+      "difficulty_ratings": true,
+      "prep_time_tracking": true
+    },
+    "website_integration": {
+      "auto_blog_upload": true,
+      "seo_optimized_content": true,
+      "recipe_scaling_docs": true,
+      "metadata_rich": true
+    }
+  },
+  "technical_specs": {
+    "frontend": "Vanilla JavaScript, HTML5, CSS3",
+    "data_storage": "JSON-based databases",
+    "pricing_source": "Walmart API integration",
+    "architecture": "Modular design with utility classes",
+    "responsive": true,
+    "accessibility": "WCAG 2.1 compliant",
+    "performance": "Optimized for mobile and desktop"
+  }
+}

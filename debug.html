@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Debug Test</h1>
+    <button onclick="test1()">Test Walmart API Only</button>
+    <button onclick="test2()">Test Full App</button>
+    <div id="output"></div>
+
+    <script>
+        // Test just the Walmart API
+        function test1() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Testing Walmart API...<br>';
+            
+            try {
+                // Simple test of the class
+                class TestWalmartAPI {
+                    constructor() {
+                        this.apiKey = 'demo-key';
+                        this.cache = new Map();
+                        this.currentStore = null;
+                    }
+                    
+                    async findNearestStore(zipCode) {
+                        // Simulate delay
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        return {
+                            storeId: '1001',
+                            name: 'Test Walmart',
+                            distance: '2.5 miles'
+                        };
+                    }
+                    
+                    async getIngredientPrice(ingredient, zipCode) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        return {
+                            price: 4.99,
+                            productName: 'Test Product',
+                            inStock: true
+                        };
+                    }
+                }
+                
+                const api = new TestWalmartAPI();
+                output.innerHTML += 'Created API instance<br>';
+                
+                api.findNearestStore('12345').then(store => {
+                    output.innerHTML += `Store: ${store.name}<br>`;
+                    
+                    return api.getIngredientPrice('ground beef', '12345');
+                }).then(price => {
+                    output.innerHTML += `Price: $${price.price}<br>`;
+                    output.innerHTML += 'Test 1 SUCCESS!<br>';
+                }).catch(error => {
+                    output.innerHTML += `Test 1 ERROR: ${error.message}<br>`;
+                });
+                
+            } catch (error) {
+                output.innerHTML += `Test 1 ERROR: ${error.message}<br>`;
+            }
+        }
+
+        function test2() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Loading full app scripts...<br>';
+            
+            // Load all scripts dynamically
+            const scripts = [
+                'js/data/recipes.js',
+                'js/data/prices.js', 
+                'js/utils/pricing.js',
+                'js/utils/walmartAPI.js',
+                'js/utils/mealSelector.js',
+                'js/utils/shoppingList.js',
+                'js/utils/recipeUploader.js'
+            ];
+            
+            let loaded = 0;
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    loaded++;
+                    output.innerHTML += `Loaded ${src}<br>`;
+                    
+                    if (loaded === scripts.length) {
+                        output.innerHTML += 'All scripts loaded. Testing...<br>';
+                        testFullApp();
+                    }
+                };
+                script.onerror = () => {
+                    output.innerHTML += `Failed to load ${src}<br>`;
+                };
+                document.head.appendChild(script);
+            });
+        }
+        
+        function testFullApp() {
+            const output = document.getElementById('output');
+            try {
+                output.innerHTML += 'Creating WalmartPricingAPI...<br>';
+                const api = new WalmartPricingAPI();
+                output.innerHTML += 'Success!<br>';
+            } catch (error) {
+                output.innerHTML += `Error creating API: ${error.message}<br>`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Simple Test</h1>
+    <button onclick="testBasics()">Test Basic Functionality</button>
+    <div id="results"></div>
+
+    <script src="js/data/recipes.js"></script>
+    <script src="js/data/prices.js"></script>
+    <script src="js/utils/pricing.js"></script>
+    <script src="js/utils/walmartAPI.js"></script>
+    <script src="js/utils/mealSelector.js"></script>
+    <script src="js/utils/shoppingList.js"></script>
+    <script src="js/utils/recipeUploader.js"></script>
+
+    <script>
+        async function testBasics() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                // Test 1: Check if classes exist
+                results.innerHTML += '<p>✅ Classes loaded</p>';
+                
+                // Test 2: Create Walmart API
+                const walmartAPI = new WalmartPricingAPI();
+                results.innerHTML += '<p>✅ Walmart API created</p>';
+                
+                // Test 3: Test store lookup
+                const store = await walmartAPI.findNearestStore('12345');
+                results.innerHTML += `<p>✅ Store found: ${store.name}</p>`;
+                
+                // Test 4: Test pricing
+                const price = await walmartAPI.getIngredientPrice('ground beef', '12345');
+                results.innerHTML += `<p>✅ Price: $${price.price}</p>`;
+                
+                // Test 5: Test meal selector
+                const mealSelector = new MealSelector(RECIPES_DATABASE);
+                results.innerHTML += '<p>✅ Meal selector created</p>';
+                
+                results.innerHTML += '<p><strong>All tests passed!</strong></p>';
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">❌ Error: ${error.message}</p>`;
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

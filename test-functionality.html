@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Budget Meals - Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .meal-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .shopping-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>Family Budget Meals - Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Meal Planning</h2>
+        <form id="test-form">
+            <div class="input-group">
+                <label for="budget">Weekly Budget ($)</label>
+                <input type="number" id="budget" min="20" value="100" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adults">Adults:</label>
+                <input type="number" id="adults" min="1" max="10" value="2" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="kids">Kids:</label>
+                <input type="number" id="kids" min="0" max="10" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="kidAges">Kid Ages (if any):</label>
+                <input type="text" id="kidAges" value="8" placeholder="e.g., 5, 8, 12">
+            </div>
+            
+            <div class="form-group">
+                <label for="zipcode">Zip Code:</label>
+                <input type="text" id="zipcode" pattern="[0-9]{5}" value="12345" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="meals">Number of Meals:</label>
+                <select id="meals" required>
+                    <option value="5">5 meals</option>
+                    <option value="7" selected>7 meals</option>
+                    <option value="10">10 meals</option>
+                    <option value="14">14 meals</option>
+                </select>
+            </div>
+            
+            <button type="submit">Generate Meal Plan</button>
+        </form>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Include all the necessary scripts -->
+    <script src="js/data/recipes.js"></script>
+    <script src="js/data/prices.js"></script>
+    <script src="js/utils/pricing.js"></script>
+    <script src="js/utils/mealSelector.js"></script>
+    <script src="js/utils/shoppingList.js"></script>
+    <script src="js/utils/walmartAPI.js"></script>
+    <script src="js/utils/recipeUploader.js"></script>
+
+    <script>
+        class TestApp {
+            constructor() {
+                this.mealSelector = new MealSelector(RECIPES_DATABASE);
+                this.shoppingListGenerator = new ShoppingListGenerator();
+                this.walmartAPI = new WalmartPricingAPI();
+                
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                document.getElementById('test-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.testMealPlanning();
+                });
+            }
+
+            async testMealPlanning() {
+                const resultDiv = document.getElementById('test-results');
+                resultDiv.innerHTML = '<p>Testing meal planning functionality...</p>';
+
+                try {
+                    // Get form data
+                    const params = {
+                        weeklyBudget: parseFloat(document.getElementById('budget').value),
+                        adults: parseInt(document.getElementById('adults').value),
+                        kids: parseInt(document.getElementById('kids').value),
+                        kidAges: document.getElementById('kidAges').value,
+                        zipCode: document.getElementById('zipcode').value,
+                        mealsCount: parseInt(document.getElementById('meals').value),
+                        allergies: ''
+                    };
+
+                    console.log('Test params:', params);
+
+                    // Test meal selection
+                    const meals = this.mealSelector.selectMeals({
+                        ...params,
+                        location: `Zip: ${params.zipCode}`
+                    });
+
+                    console.log('Selected meals:', meals);
+
+                    if (!meals || meals.length === 0) {
+                        throw new Error('No meals were selected');
+                    }
+
+                    // Test shopping list generation
+                    const shoppingList = this.generateTestShoppingList(meals, params.zipCode);
+
+                    console.log('Shopping list:', shoppingList);
+
+                    // Display results
+                    this.displayTestResults(meals, shoppingList, params);
+
+                } catch (error) {
+                    console.error('Test error:', error);
+                    resultDiv.innerHTML = `<div class="result error"><strong>Test Failed:</strong> ${error.message}</div>`;
+                }
+            }
+
+            generateTestShoppingList(meals, zipCode) {
+                const ingredientMap = new Map();
+                
+                for (const meal of meals) {
+                    for (const ingredient of meal.ingredients) {
+                        const key = ingredient.name.toLowerCase();
+                        
+                        // Get simple pricing
+                        const pricing = getIngredientPrice(ingredient.name, ingredient.amount, ingredient.unit, zipCode);
+                        
+                        if (ingredientMap.has(key)) {
+                            const existing = ingredientMap.get(key);
+                            existing.totalAmount += ingredient.amount;
+                            existing.totalPrice += pricing.price;
+                            existing.usedIn.push(meal.name);
+                        } else {
+                            ingredientMap.set(key, {
+                                name: ingredient.name,
+                                totalAmount: ingredient.amount,
+                                unit: ingredient.unit,
+                                totalPrice: pricing.price,
+                                unitPrice: pricing.price / ingredient.amount,
+                                inStock: true,
+                                usedIn: [meal.name]
+                            });
+                        }
+                    }
+                }
+                
+                const items = Array.from(ingredientMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+                const totalCost = items.reduce((sum, item) => sum + item.totalPrice, 0);
+                
+                return {
+                    items: items,
+                    totalCost: totalCost,
+                    store: { name: `Walmart near ${zipCode}` },
+                    lastUpdated: new Date().toISOString()
+                };
+            }
+
+            displayTestResults(meals, shoppingList, params) {
+                const resultDiv = document.getElementById('test-results');
+                
+                let html = '<div class="result success"><strong>Test Successful!</strong></div>';
+                
+                // Budget summary
+                const totalCost = shoppingList.totalCost;
+                html += `
+                    <div class="result">
+                        <h3>Budget Summary</h3>
+                        <p><strong>Weekly Budget:</strong> $${params.weeklyBudget.toFixed(2)}</p>
+                        <p><strong>Estimated Cost:</strong> $${totalCost.toFixed(2)}</p>
+                        <p><strong>Savings:</strong> $${(params.weeklyBudget - totalCost).toFixed(2)}</p>
+                        <p><strong>Status:</strong> ${totalCost <= params.weeklyBudget ? 'Within Budget ✅' : 'Over Budget ❌'}</p>
+                    </div>
+                `;
+                
+                // Meal plan
+                html += '<div class="result"><h3>Selected Meals</h3>';
+                meals.forEach(meal => {
+                    html += `
+                        <div class="meal-item">
+                            <h4>${meal.name}</h4>
+                            <p><strong>Cost:</strong> $${meal.pricing.totalCost.toFixed(2)} | <strong>Serves:</strong> ${meal.scaledServings}</p>
+                            <p><strong>Time:</strong> ${meal.prepTime + meal.cookTime} minutes | <strong>Difficulty:</strong> ${meal.difficulty}</p>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                // Shopping list
+                html += '<div class="result"><h3>Shopping List</h3>';
+                html += `<p><strong>Total Cost:</strong> $${shoppingList.totalCost.toFixed(2)}</p>`;
+                shoppingList.items.forEach(item => {
+                    html += `
+                        <div class="shopping-item">
+                            <span>${item.totalAmount} ${item.unit} ${item.name}</span>
+                            <span>$${item.totalPrice.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                resultDiv.innerHTML = html;
+            }
+        }
+
+        // Initialize test app when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testApp = new TestApp();
+        });
+    </script>
+</body>
+</html>

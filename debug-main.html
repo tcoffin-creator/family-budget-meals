@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Budget Meals - Debug</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        .debug-log {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="debug-info" class="debug-info">
+        <div><strong>Debug Info:</strong></div>
+        <div>App Status: <span id="app-status">Loading...</span></div>
+        <div>Current Section: <span id="current-section">None</span></div>
+        <div>Form Valid: <span id="form-valid">Unknown</span></div>
+        <div class="debug-log" id="debug-log"></div>
+    </div>
+
+    <div id="app">
+        <header class="header">
+            <div class="container">
+                <h1><i class="fas fa-utensils"></i> Family Budget Meals</h1>
+                <p class="tagline">Smart meal planning within your budget</p>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <!-- Setup Form -->
+                <section id="setup-section" class="section">
+                    <div class="card">
+                        <h2><i class="fas fa-cog"></i> Plan Your Meals</h2>
+                        <form id="meal-planner-form" class="form">
+                                                        <div class="form-group">
+                                <label for="weekly-budget">Weekly Budget ($)</label>
+                                <input type="number" id="weekly-budget" name="weeklyBudget" min="20" step="5" value="100" required>
+                                <small class="form-help">How much do you want to spend on groceries this week?</small>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="adults">Adults</label>
+                                    <input type="number" id="adults" name="adults" min="1" max="10" value="2" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="kids">Kids</label>
+                                    <input type="number" id="kids" name="kids" min="0" max="10" value="1">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="kid-ages">Kids Ages (comma separated, if any)</label>
+                                <input type="text" id="kid-ages" name="kidAges" value="8" placeholder="e.g., 5, 8, 12">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="zipcode">Zip Code (for local Walmart pricing)</label>
+                                <input type="text" id="zipcode" name="zipcode" value="12345" placeholder="12345" pattern="[0-9]{5}" maxlength="5" required>
+                                <small>We'll find pricing from your nearest Walmart store</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="meals-count">Number of Meals to Plan</label>
+                                <select id="meals-count" name="mealsCount" required>
+                                    <option value="5">5 meals</option>
+                                    <option value="7" selected>7 meals (1 week)</option>
+                                    <option value="14">14 meals (2 weeks)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="allergies">Allergies & Dislikes</label>
+                                <textarea id="allergies" name="allergies" rows="3" placeholder="List any food allergies, dietary restrictions, or strong dislikes..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-magic"></i> Generate Meal Plan
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Loading -->
+                <section id="loading-section" class="section hidden">
+                    <div class="card text-center">
+                        <i class="fas fa-spinner fa-spin fa-3x"></i>
+                        <h3>Creating Your Budget-Friendly Meal Plan...</h3>
+                        <p id="loading-message">Finding the best recipes and calculating costs</p>
+                    </div>
+                </section>
+
+                <!-- Results -->
+                <section id="results-section" class="section hidden">
+                    <div class="results-header">
+                        <h2><i class="fas fa-calendar-alt"></i> Your Meal Plan</h2>
+                        <div class="budget-summary">
+                            <div class="budget-item">
+                                <span class="label">Budget:</span>
+                                <span class="value" id="total-budget">$0</span>
+                            </div>
+                            <div class="budget-item">
+                                <span class="label">Estimated Cost:</span>
+                                <span class="value" id="estimated-cost">$0</span>
+                            </div>
+                            <div class="budget-item">
+                                <span class="label">Per Meal:</span>
+                                <span class="value" id="per-meal-cost">$0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="meal-plan-grid" class="meal-grid">
+                        <!-- Meals will be inserted here -->
+                    </div>
+
+                    <div class="card">
+                        <h3><i class="fas fa-shopping-cart"></i> Shopping List</h3>
+                        <div id="shopping-list" class="shopping-list-simple">
+                            <!-- Shopping list will be inserted here -->
+                        </div>
+                        <div class="shopping-total">
+                            <strong>Total Cost: <span id="shopping-total">$0.00</span></strong>
+                            <p class="price-source">Prices from Walmart Store #<span id="store-number">----</span></p>
+                        </div>
+                    </div>
+
+                    <button id="new-plan-btn" class="btn btn-outline">
+                        <i class="fas fa-refresh"></i> Create New Plan
+                    </button>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/data/recipes.js"></script>
+    <script src="js/data/prices.js"></script>
+    <script src="js/utils/pricing.js"></script>
+    <script src="js/utils/walmartAPI.js"></script>
+    <script src="js/utils/mealSelector.js"></script>
+    <script src="js/utils/shoppingList.js"></script>
+    <script src="js/utils/simpleShoppingList.js"></script>
+
+    <script>
+        // Debug utilities
+        function debugLog(message) {
+            console.log(message);
+            const log = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML = `${timestamp}: ${message}<br>` + log.innerHTML;
+        }
+
+        function updateDebugStatus(field, value) {
+            const element = document.getElementById(field);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+
+        // Enhanced App class with debugging
+        class DebugFamilyBudgetMealsApp {
+            constructor() {
+                debugLog('Initializing app...');
+                updateDebugStatus('app-status', 'Initializing');
+                
+                try {
+                    this.mealSelector = new MealSelector(RECIPES_DATABASE);
+                    this.shoppingListGenerator = new SimpleShoppingListGenerator();
+                    this.walmartAPI = new WalmartPricingAPI();
+                    
+                    debugLog('All components initialized successfully');
+                    
+                    this.currentMealPlan = null;
+                    this.currentShoppingList = null;
+                    this.userParams = null;
+                    this.currentStore = null;
+                    
+                    this.init();
+                } catch (error) {
+                    debugLog('Error during initialization: ' + error.message);
+                    updateDebugStatus('app-status', 'Error');
+                }
+            }
+
+            init() {
+                debugLog('Running init...');
+                this.bindEvents();
+                this.showSection('setup');
+                updateDebugStatus('app-status', 'Ready');
+                debugLog('App ready');
+            }
+
+            bindEvents() {
+                debugLog('Binding events...');
+                const form = document.getElementById('meal-planner-form');
+                if (form) {
+                    form.addEventListener('submit', (e) => {
+                        debugLog('Form submitted');
+                        this.handleFormSubmit(e);
+                    });
+                    debugLog('Form event bound');
+                } else {
+                    debugLog('ERROR: Form not found');
+                }
+
+                const newPlanBtn = document.getElementById('new-plan-btn');
+                if (newPlanBtn) {
+                    newPlanBtn.addEventListener('click', () => this.startNewPlan());
+                }
+            }
+
+            async handleFormSubmit(e) {
+                e.preventDefault();
+                debugLog('Processing form submission...');
+                
+                const formData = new FormData(e.target);
+                this.userParams = {
+                    weeklyBudget: parseFloat(formData.get('weeklyBudget')),
+                    adults: parseInt(formData.get('adults')),
+                    kids: parseInt(formData.get('kids')),
+                    kidAges: formData.get('kidAges'),
+                    zipCode: formData.get('zipcode'),
+                    mealsCount: parseInt(formData.get('mealsCount')),
+                    allergies: formData.get('allergies')
+                };
+
+                debugLog('Form data: ' + JSON.stringify(this.userParams));
+
+                if (!this.validateParams(this.userParams)) {
+                    updateDebugStatus('form-valid', 'Invalid');
+                    return;
+                }
+
+                updateDebugStatus('form-valid', 'Valid');
+                this.showSection('loading');
+                
+                try {
+                    await this.generateMealPlan();
+                } catch (error) {
+                    debugLog('Error generating meal plan: ' + error.message);
+                    this.showSection('setup');
+                }
+            }
+
+            validateParams(params) {
+                debugLog('Validating parameters...');
+                
+                if (!params.weeklyBudget || params.weeklyBudget < 20) {
+                    debugLog('Invalid budget');
+                    return false;
+                }
+
+                if (!params.adults || params.adults < 1) {
+                    debugLog('Invalid adults count');
+                    return false;
+                }
+
+                if (!params.zipCode || !/^\d{5}$/.test(params.zipCode)) {
+                    debugLog('Invalid zip code');
+                    return false;
+                }
+
+                debugLog('Validation passed');
+                return true;
+            }
+
+            async generateMealPlan() {
+                debugLog('Generating meal plan...');
+                
+                await this.updateStatus('Selecting budget-friendly meals...');
+                
+                this.currentMealPlan = this.mealSelector.selectMeals({
+                    ...this.userParams,
+                    location: `Zip: ${this.userParams.zipCode}`
+                });
+                
+                debugLog('Meals selected: ' + this.currentMealPlan.length);
+                
+                if (!this.currentMealPlan || this.currentMealPlan.length === 0) {
+                    throw new Error('No suitable meals found');
+                }
+
+                await this.updateStatus('Creating shopping list...');
+                this.currentShoppingList = this.generateSimpleShoppingList();
+                
+                debugLog('Shopping list generated');
+                this.displayResults();
+                this.showSection('results');
+                debugLog('Results displayed');
+            }
+
+            generateSimpleShoppingList(meals, zipCode) {
+                return this.shoppingListGenerator.generateShoppingList(meals, zipCode);
+            }
+
+            displayResults() {
+                debugLog('Displaying results...');
+                this.displayBudgetSummary();
+                this.displayMealPlan();
+                this.displayShoppingList();
+            }
+
+            displayBudgetSummary() {
+                const totalCost = this.currentShoppingList.totals.totalCost;
+                document.getElementById('total-budget').textContent = `$${this.userParams.weeklyBudget.toFixed(2)}`;
+                document.getElementById('estimated-cost').textContent = `$${totalCost.toFixed(2)}`;
+                document.getElementById('per-meal-cost').textContent = `$${(totalCost / this.currentMealPlan.length).toFixed(2)}`;
+            }
+
+            displayMealPlan() {
+                const mealGrid = document.getElementById('meal-plan-grid');
+                mealGrid.innerHTML = '';
+
+                this.currentMealPlan.forEach((meal) => {
+                    const mealCard = document.createElement('div');
+                    mealCard.className = 'meal-card';
+                    mealCard.innerHTML = `
+                        <div class="meal-header">
+                            <h3 class="meal-title">${meal.name}</h3>
+                            <div class="meal-cost">$${meal.pricing.totalCost.toFixed(2)}</div>
+                        </div>
+                        <div class="meal-info">
+                            <p><strong>Serves:</strong> ${meal.scaledServings} people</p>
+                            <p><strong>Time:</strong> ${meal.prepTime + meal.cookTime} minutes</p>
+                            <p><strong>Per Serving:</strong> $${meal.pricing.costPerServing.toFixed(2)}</p>
+                        </div>
+                    `;
+                    mealGrid.appendChild(mealCard);
+                });
+            }
+
+            displayShoppingList() {
+                const shoppingList = document.getElementById('shopping-list');
+                shoppingList.innerHTML = '';
+
+                const formattedList = this.shoppingListGenerator.formatForDisplay(this.currentShoppingList);
+                formattedList.items.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'shopping-item-simple';
+                    itemDiv.innerHTML = `
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-price">$${item.price.toFixed(2)}</span>
+                    `;
+                    shoppingList.appendChild(itemDiv);
+                });
+
+                document.getElementById('shopping-total').textContent = `$${this.currentShoppingList.totals.totalCost.toFixed(2)}`;
+            }
+
+            async updateStatus(message) {
+                const statusElement = document.getElementById('loading-message');
+                if (statusElement) {
+                    statusElement.textContent = message;
+                }
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            showSection(sectionName) {
+                debugLog('Showing section: ' + sectionName);
+                updateDebugStatus('current-section', sectionName);
+                
+                const sections = ['setup', 'loading', 'results'];
+                sections.forEach(section => {
+                    const element = document.getElementById(`${section}-section`);
+                    if (element) {
+                        element.classList.toggle('hidden', section !== sectionName);
+                    }
+                });
+            }
+
+            startNewPlan() {
+                debugLog('Starting new plan...');
+                this.showSection('setup');
+            }
+        }
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            debugLog('DOM loaded, initializing app...');
+            window.app = new DebugFamilyBudgetMealsApp();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Budget Meals Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .demo-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #5a6fd8; }
+    </style>
+</head>
+<body>
+    <h1>🍽️ Family Budget Meals - Demo & Test Page</h1>
+    
+    <div class="demo-section">
+        <h2>📋 System Tests</h2>
+        <button onclick="runTests()">Run All Tests</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🎯 Quick Demo</h2>
+        <p>Test the meal planning algorithm with sample data:</p>
+        <button onclick="runDemo()">Generate Sample Meal Plan</button>
+        <div id="demo-results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>💰 Pricing Test</h2>
+        <p>Test the pricing system with different locations:</p>
+        <button onclick="testPricing()">Test Pricing Accuracy</button>
+        <div id="pricing-results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🛒 Shopping List Test</h2>
+        <button onclick="testShoppingList()">Generate Test Shopping List</button>
+        <div id="shopping-results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>📝 Recipe Upload Test</h2>
+        <button onclick="testRecipeUpload()">Test Recipe Upload</button>
+        <div id="upload-results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🚀 Launch Full App</h2>
+        <p>Ready to use the full application?</p>
+        <a href="index.html" style="display: inline-block; background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+            Open Family Budget Meals App
+        </a>
+    </div>
+
+    <!-- Include all the app scripts -->
+    <script src="js/data/recipes.js"></script>
+    <script src="js/data/prices.js"></script>
+    <script src="js/utils/pricing.js"></script>
+    <script src="js/utils/walmartAPI.js"></script>
+    <script src="js/utils/mealSelector.js"></script>
+    <script src="js/utils/shoppingList.js"></script>
+    <script src="js/utils/recipeUploader.js"></script>
+
+    <script>
+        function showResult(containerId, message, type = 'success') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        async function runTests() {
+            clearResults('test-results');
+            
+            // Test 1: Recipe Database
+            try {
+                const totalRecipes = Object.values(RECIPES_DATABASE).reduce((sum, category) => sum + category.length, 0);
+                showResult('test-results', `✅ Recipe Database: ${totalRecipes} recipes loaded successfully`);
+            } catch (error) {
+                showResult('test-results', `❌ Recipe Database Error: ${error.message}`, 'error');
+            }
+
+            // Test 2: Walmart API System
+            try {
+                const walmartAPI = new WalmartPricingAPI();
+                const store = await walmartAPI.findNearestStore('43215');
+                const price = await walmartAPI.getIngredientPrice('ground beef', '43215');
+                showResult('test-results', `✅ Walmart API: Ground beef costs $${price.price.toFixed(2)} at ${store.name}`);
+            } catch (error) {
+                showResult('test-results', `❌ Walmart API Error: ${error.message}`, 'error');
+            }
+
+            // Test 3: Meal Selector
+            try {
+                const mealSelector = new MealSelector(RECIPES_DATABASE);
+                const params = {
+                    weeklyBudget: 100,
+                    adults: 2,
+                    kids: 1,
+                    kidAges: '8',
+                    location: 'California',
+                    mealsCount: 7,
+                    allergies: ''
+                };
+                const meals = mealSelector.selectMeals(params);
+                showResult('test-results', `✅ Meal Selector: Generated ${meals.length} meals for $${mealSelector.getTotalCost().toFixed(2)}`);
+            } catch (error) {
+                showResult('test-results', `❌ Meal Selector Error: ${error.message}`, 'error');
+            }
+
+            // Test 4: Shopping List Generator
+            try {
+                const generator = new ShoppingListGenerator();
+                const mealSelector = new MealSelector(RECIPES_DATABASE);
+                const meals = mealSelector.selectMeals({
+                    weeklyBudget: 80,
+                    adults: 2,
+                    kids: 0,
+                    location: 'Florida',
+                    mealsCount: 5,
+                    allergies: ''
+                });
+                const shoppingList = generator.generateShoppingList(meals, 'Florida');
+                showResult('test-results', `✅ Shopping List: Generated list with ${shoppingList.totals.totalItems} items ($${shoppingList.totals.totalCost.toFixed(2)})`);
+            } catch (error) {
+                showResult('test-results', `❌ Shopping List Error: ${error.message}`, 'error');
+            }
+
+            // Test 5: Recipe Uploader
+            try {
+                const uploader = new RecipeUploader();
+                const testMeal = RECIPES_DATABASE.dinner[0];
+                const blogPosts = uploader.convertRecipesToBlogPosts([testMeal]);
+                showResult('test-results', `✅ Recipe Uploader: Converted ${blogPosts.length} blog posts`);
+            } catch (error) {
+                showResult('test-results', `❌ Recipe Uploader Error: ${error.message}`, 'error');
+            }
+
+            showResult('test-results', '🎉 All tests completed!');
+        }
+
+        async function runDemo() {
+            clearResults('demo-results');
+            showResult('demo-results', '🔄 Generating sample meal plan...');
+
+            try {
+                const mealSelector = new MealSelector(RECIPES_DATABASE);
+                const params = {
+                    weeklyBudget: 75,
+                    adults: 2,
+                    kids: 2,
+                    kidAges: '6, 10',
+                    zipCode: '43215',
+                    mealsCount: 7,
+                    allergies: 'nuts'
+                };
+
+                const meals = mealSelector.selectMeals(params);
+                const totalCost = mealSelector.getTotalCost();
+                const avgCost = totalCost / meals.length;
+
+                let resultHTML = `
+                    <h3>Sample Meal Plan Results:</h3>
+                    <p><strong>Family:</strong> 2 adults, 2 kids (ages 6, 10)</p>
+                    <p><strong>Budget:</strong> $75/week</p>
+                    <p><strong>Zip Code:</strong> 43215 (Columbus, OH)</p>
+                    <p><strong>Total Cost:</strong> $${totalCost.toFixed(2)}</p>
+                    <p><strong>Average per meal:</strong> $${avgCost.toFixed(2)}</p>
+                    <h4>Selected Meals:</h4>
+                    <ul>
+                `;
+
+                meals.forEach(meal => {
+                    resultHTML += `<li><strong>${meal.name}</strong> - $${meal.pricing.totalCost.toFixed(2)} (serves ${meal.scaledServings})</li>`;
+                });
+
+                resultHTML += '</ul>';
+                showResult('demo-results', resultHTML);
+            } catch (error) {
+                showResult('demo-results', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPricing() {
+            clearResults('pricing-results');
+            
+            const testItems = [
+                { name: 'ground beef', amount: 1, unit: 'lb' },
+                { name: 'milk', amount: 1, unit: 'gallon' },
+                { name: 'bread', amount: 1, unit: 'loaf' },
+                { name: 'eggs', amount: 1, unit: 'dozen' }
+            ];
+
+            const locations = ['California', 'Texas', 'New York', 'Mississippi'];
+
+            let resultHTML = '<h4>Pricing Comparison:</h4><table border="1" style="width:100%; border-collapse: collapse;"><tr><th>Item</th>';
+            locations.forEach(loc => resultHTML += `<th>${loc}</th>`);
+            resultHTML += '</tr>';
+
+            testItems.forEach(item => {
+                resultHTML += `<tr><td>${item.name}</td>`;
+                locations.forEach(location => {
+                    const price = getIngredientPrice(item.name, item.amount, item.unit, location);
+                    resultHTML += `<td>$${price.price.toFixed(2)}</td>`;
+                });
+                resultHTML += '</tr>';
+            });
+
+            resultHTML += '</table>';
+            showResult('pricing-results', resultHTML);
+        }
+
+        async function testShoppingList() {
+            clearResults('shopping-results');
+
+            try {
+                const mealSelector = new MealSelector(RECIPES_DATABASE);
+                const meals = mealSelector.selectMeals({
+                    weeklyBudget: 60,
+                    adults: 1,
+                    kids: 1,
+                    kidAges: '5',
+                    location: 'Texas',
+                    mealsCount: 5,
+                    allergies: ''
+                });
+
+                const generator = new ShoppingListGenerator();
+                const shoppingList = generator.generateShoppingList(meals, 'Texas');
+
+                let resultHTML = `
+                    <h4>Sample Shopping List:</h4>
+                    <p><strong>Total Items:</strong> ${shoppingList.totals.totalItems}</p>
+                    <p><strong>Estimated Cost:</strong> $${shoppingList.totals.totalCost.toFixed(2)}</p>
+                `;
+
+                Object.entries(shoppingList.categories).forEach(([key, category]) => {
+                    resultHTML += `<h5>${category.icon} ${category.name} (${category.items.length} items)</h5><ul>`;
+                    category.items.slice(0, 3).forEach(item => {
+                        resultHTML += `<li>${item.totalAmount} ${item.unit} ${item.name} - $${item.price.toFixed(2)}</li>`;
+                    });
+                    if (category.items.length > 3) {
+                        resultHTML += `<li>...and ${category.items.length - 3} more items</li>`;
+                    }
+                    resultHTML += '</ul>';
+                });
+
+                showResult('shopping-results', resultHTML);
+            } catch (error) {
+                showResult('shopping-results', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRecipeUpload() {
+            clearResults('upload-results');
+
+            try {
+                const uploader = new RecipeUploader();
+                const testMeals = [RECIPES_DATABASE.dinner[0], RECIPES_DATABASE.lunch[0]];
+                
+                const blogPosts = uploader.convertRecipesToBlogPosts(testMeals, {
+                    name: 'Test User'
+                });
+
+                let resultHTML = `
+                    <h4>Generated Blog Posts:</h4>
+                    <p><strong>Total Posts:</strong> ${blogPosts.length}</p>
+                `;
+
+                blogPosts.forEach((post, index) => {
+                    resultHTML += `
+                        <div style="margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 4px;">
+                            <strong>${index + 1}. ${post.title}</strong><br>
+                            <em>Categories:</em> ${post.categories.join(', ')}<br>
+                            <em>Tags:</em> ${post.tags.join(', ')}<br>
+                            <em>Word Count:</em> ~${post.content.split(' ').length} words
+                        </div>
+                    `;
+                });
+
+                showResult('upload-results', resultHTML);
+            } catch (error) {
+                showResult('upload-results', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.addEventListener('load', () => {
+            runTests();
+        });
+    </script>
+</body>
+</html>
