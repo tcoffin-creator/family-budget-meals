@@ -21,53 +21,182 @@
                 <!-- Setup Form -->
                 <section id="setup-section" class="section">
                     <div class="card">
-                        <h2><i class="fas fa-cog"></i> AI-Powered Meal Planning</h2>
+                        <div class="settings-header">
+                            <h2><i class="fas fa-cog"></i> AI-Powered Meal Planning</h2>
+                            <div class="action-buttons">
+                                <button type="button" id="load-settings-btn" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-download"></i> Load Settings
+                                </button>
+                                <button type="button" id="save-settings-btn" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-save"></i> Save Settings
+                                </button>
+                                <button type="button" id="view-saved-lists-btn" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-shopping-cart"></i> Shopping Lists
+                                </button>
+                            </div>
+                        </div>
+                        
                         <form id="meal-planner-form" class="form">
-                                                        <div class="form-group">
-                                <label for="weekly-budget">Weekly Budget ($)</label>
-                                <input type="number" id="weekly-budget" name="weeklyBudget" min="20" step="5" required>
-                                <small class="form-help">How much do you want to spend on groceries this week?</small>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="adults">Adults</label>
-                                    <input type="number" id="adults" name="adults" min="1" max="10" value="2" required>
+                            <!-- Family & Budget Info -->
+                            <div class="form-section">
+                                <h3><i class="fas fa-family"></i> Family & Budget Information</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="weekly-budget">Weekly Grocery Budget ($)</label>
+                                        <input type="number" id="weekly-budget" name="weeklyBudget" min="20" step="0.01" required>
+                                        <small class="form-help">Total amount you want to spend this week</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="zipcode">ZIP Code</label>
+                                        <input type="text" id="zipcode" name="zipcode" pattern="[0-9]{5}" maxlength="5" required>
+                                        <small class="form-help">For local pricing</small>
+                                    </div>
                                 </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="adults">Number of Adults</label>
+                                        <input type="number" id="adults" name="adults" min="1" max="10" value="2" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="kids">Number of Children</label>
+                                        <input type="number" id="kids" name="kids" min="0" max="10" value="0">
+                                    </div>
+                                </div>
+                                
                                 <div class="form-group">
-                                    <label for="kids">Kids</label>
-                                    <input type="number" id="kids" name="kids" min="0" max="10" value="0">
+                                    <label for="allergies">Allergies & Dietary Restrictions</label>
+                                    <input type="text" id="allergies" name="allergies" placeholder="e.g., nuts, dairy, gluten-free, vegetarian">
                                 </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="kid-ages">Kids Ages (comma separated, if any)</label>
-                                <input type="text" id="kid-ages" name="kidAges" placeholder="e.g., 5, 8, 12">
+                            
+                            <!-- Breakfast Planning -->
+                            <div class="form-section">
+                                <h3><i class="fas fa-coffee"></i> Breakfast Planning</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="breakfast-days">Breakfasts per week</label>
+                                        <select id="breakfast-days" name="breakfastDays">
+                                            <option value="0">Skip breakfast planning</option>
+                                            <option value="5">Weekdays only (5 days)</option>
+                                            <option value="7" selected>Every day (7 days)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="breakfast-people">People eating breakfast</label>
+                                        <select id="breakfast-people" name="breakfastPeople">
+                                            <option value="all" selected>Everyone</option>
+                                            <option value="adults">Adults only</option>
+                                            <option value="kids">Kids only</option>
+                                            <option value="custom">Custom count</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="breakfast-custom-group" style="display: none;">
+                                        <label for="breakfast-count">Number of people</label>
+                                        <input type="number" id="breakfast-count" name="breakfastCount" min="1" max="20">
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="zipcode">Zip Code (for local Walmart pricing)</label>
-                                <input type="text" id="zipcode" name="zipcode" placeholder="12345" pattern="[0-9]{5}" maxlength="5" required>
-                                <small>We'll find pricing from your nearest Walmart store</small>
+                            
+                            <!-- Lunch Planning -->
+                            <div class="form-section">
+                                <h3><i class="fas fa-sandwich"></i> Lunch Planning</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="lunch-days">Lunches per week</label>
+                                        <select id="lunch-days" name="lunchDays">
+                                            <option value="0">Skip lunch planning</option>
+                                            <option value="5">Weekdays only (5 days)</option>
+                                            <option value="7" selected>Every day (7 days)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="lunch-people">People eating lunch</label>
+                                        <select id="lunch-people" name="lunchPeople">
+                                            <option value="all" selected>Everyone</option>
+                                            <option value="adults">Adults only</option>
+                                            <option value="kids">Kids only</option>
+                                            <option value="custom">Custom count</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="lunch-custom-group" style="display: none;">
+                                        <label for="lunch-count">Number of people</label>
+                                        <input type="number" id="lunch-count" name="lunchCount" min="1" max="20">
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="meals-count">Number of Meals to Plan</label>
-                                <select id="meals-count" name="mealsCount" required>
-                                    <option value="7">7 meals (1 week)</option>
-                                    <option value="14">14 meals (2 weeks)</option>
-                                    <option value="21">21 meals (3 weeks)</option>
-                                </select>
+                            
+                            <!-- Dinner Planning -->
+                            <div class="form-section">
+                                <h3><i class="fas fa-drumstick-bite"></i> Dinner Planning</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="dinner-days">Dinners per week</label>
+                                        <select id="dinner-days" name="dinnerDays">
+                                            <option value="0">Skip dinner planning</option>
+                                            <option value="5">Weekdays only (5 days)</option>
+                                            <option value="7" selected>Every day (7 days)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dinner-people">People eating dinner</label>
+                                        <select id="dinner-people" name="dinnerPeople">
+                                            <option value="all" selected>Everyone</option>
+                                            <option value="adults">Adults only</option>
+                                            <option value="kids">Kids only</option>
+                                            <option value="custom">Custom count</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="dinner-custom-group" style="display: none;">
+                                        <label for="dinner-count">Number of people</label>
+                                        <input type="number" id="dinner-count" name="dinnerCount" min="1" max="20">
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="allergies">Allergies & Dislikes</label>
-                                <textarea id="allergies" name="allergies" rows="3" placeholder="List any food allergies, dietary restrictions, or strong dislikes..."></textarea>
+                            
+                            <!-- Preferences -->
+                            <div class="form-section">
+                                <h3><i class="fas fa-heart"></i> Meal Preferences</h3>
+                                <div class="form-group">
+                                    <label>Preferred Cuisines</label>
+                                    <div class="checkbox-group">
+                                        <label><input type="checkbox" name="cuisines" value="american"> American</label>
+                                        <label><input type="checkbox" name="cuisines" value="italian"> Italian</label>
+                                        <label><input type="checkbox" name="cuisines" value="mexican"> Mexican</label>
+                                        <label><input type="checkbox" name="cuisines" value="asian"> Asian</label>
+                                        <label><input type="checkbox" name="cuisines" value="mediterranean"> Mediterranean</label>
+                                        <label><input type="checkbox" name="cuisines" value="comfort"> Comfort Food</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="cooking-skill">Cooking Skill Level</label>
+                                        <select id="cooking-skill" name="cookingSkill">
+                                            <option value="beginner">Beginner (30 min or less)</option>
+                                            <option value="intermediate" selected>Intermediate (45 min or less)</option>
+                                            <option value="advanced">Advanced (any time)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="health-focus">Health Focus</label>
+                                        <select id="health-focus" name="healthFocus">
+                                            <option value="balanced" selected>Balanced nutrition</option>
+                                            <option value="low-carb">Low carb</option>
+                                            <option value="high-protein">High protein</option>
+                                            <option value="heart-healthy">Heart healthy</option>
+                                            <option value="kid-friendly">Kid-friendly</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-magic"></i> Generate Meal Plan
-                            </button>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-large">
+                                    <i class="fas fa-magic"></i> Generate AI Meal Plan
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </section>
@@ -163,6 +292,7 @@
     <script src="js/utils/mealSelector.js"></script>
     <script src="js/utils/simpleShoppingList.js"></script>
     <script src="js/utils/recipeSaver.js"></script>
+    <script src="js/utils/shoppingListManager.js"></script>
     <script src="js/app.js"></script>
     
     <!-- Initialize App -->

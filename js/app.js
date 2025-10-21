@@ -5,6 +5,7 @@ class FamilyBudgetMealsApp {
         this.secureAPI = new SecureAPIClient();
         this.shoppingListGenerator = new SimpleShoppingListGenerator();
         this.recipeSaver = new RecipeSaver();
+        this.shoppingListManager = new ShoppingListManager();
         
         // Legacy services for fallback
         this.mealSelector = new MealSelector(RECIPES_DATABASE);
@@ -22,6 +23,7 @@ class FamilyBudgetMealsApp {
     init() {
         this.bindEvents();
         this.loadSavedData();
+        this.loadSettings(); // Load saved settings on startup
         this.showSection('setup'); // Go directly to setup, no API config needed
     }
 
@@ -83,6 +85,23 @@ class FamilyBudgetMealsApp {
                 }
             });
         }
+
+        // Settings buttons
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+        }
+
+        const loadSettingsBtn = document.getElementById('load-settings-btn');
+        if (loadSettingsBtn) {
+            loadSettingsBtn.addEventListener('click', () => this.loadSettings());
+        }
+
+        // View saved shopping lists button
+        const viewSavedListsBtn = document.getElementById('view-saved-lists-btn');
+        if (viewSavedListsBtn) {
+            viewSavedListsBtn.addEventListener('click', () => this.shoppingListManager.showSavedLists());
+        }
     }
 
     // Handle form submission
@@ -91,6 +110,15 @@ class FamilyBudgetMealsApp {
         console.log('Form submitted');
         
         const formData = new FormData(e.target);
+        
+        // Collect cuisine preferences
+        const cuisinePrefs = [];
+        ['american', 'italian', 'mexican', 'asian', 'mediterranean', 'comfort'].forEach(cuisine => {
+            if (formData.get(cuisine)) {
+                cuisinePrefs.push(cuisine);
+            }
+        });
+
         this.userParams = {
             weeklyBudget: parseFloat(formData.get('weeklyBudget')),
             adults: parseInt(formData.get('adults')),
@@ -98,7 +126,23 @@ class FamilyBudgetMealsApp {
             kidAges: formData.get('kidAges'),
             zipCode: formData.get('zipcode'),
             mealsCount: parseInt(formData.get('mealsCount')),
-            allergies: formData.get('allergies')
+            allergies: formData.get('allergies'),
+            // Breakfast section
+            breakfastDays: parseInt(formData.get('breakfastDays')) || 0,
+            breakfastPeople: parseInt(formData.get('breakfastPeople')) || 0,
+            breakfastCount: parseInt(formData.get('breakfastCount')) || 0,
+            // Lunch section
+            lunchDays: parseInt(formData.get('lunchDays')) || 0,
+            lunchPeople: parseInt(formData.get('lunchPeople')) || 0,
+            lunchCount: parseInt(formData.get('lunchCount')) || 0,
+            // Dinner section
+            dinnerDays: parseInt(formData.get('dinnerDays')) || 0,
+            dinnerPeople: parseInt(formData.get('dinnerPeople')) || 0,
+            dinnerCount: parseInt(formData.get('dinnerCount')) || 0,
+            // Preferences
+            cuisinePreferences: cuisinePrefs,
+            cookingSkill: formData.get('cookingSkill') || 'intermediate',
+            healthFocus: formData.get('healthFocus') || 'balanced'
         };
 
         console.log('User params:', this.userParams);
@@ -205,12 +249,39 @@ class FamilyBudgetMealsApp {
             const dietaryRestrictions = this.userParams.allergies ? 
                 this.userParams.allergies.split(',').map(s => s.trim()).filter(s => s) : [];
             
-            // Generate AI recipes using secure backend
+            // Prepare expanded request data with all meal types
+            const requestData = {
+                familySize,
+                budget: this.userParams.weeklyBudget,
+                zipCode: this.userParams.zipCode,
+                dietaryRestrictions,
+                // Breakfast details
+                breakfastDays: this.userParams.breakfastDays || 0,
+                breakfastPeople: this.userParams.breakfastPeople || 0,
+                breakfastCount: this.userParams.breakfastCount || 0,
+                // Lunch details
+                lunchDays: this.userParams.lunchDays || 0,
+                lunchPeople: this.userParams.lunchPeople || 0,
+                lunchCount: this.userParams.lunchCount || 0,
+                // Dinner details
+                dinnerDays: this.userParams.dinnerDays || 0,
+                dinnerPeople: this.userParams.dinnerPeople || 0,
+                dinnerCount: this.userParams.dinnerCount || 0,
+                // Preferences
+                cuisinePreferences: this.userParams.cuisinePreferences || [],
+                cookingSkill: this.userParams.cookingSkill || 'intermediate',
+                healthFocus: this.userParams.healthFocus || 'balanced',
+                // Legacy
+                mealsCount: this.userParams.mealsCount || 5
+            };
+            
+            // Generate AI recipes using secure backend with expanded parameters
             this.currentMealPlan = await this.secureAPI.generateHealthyRecipes(
                 familySize, 
                 this.userParams.weeklyBudget, 
                 this.userParams.zipCode,
-                dietaryRestrictions
+                dietaryRestrictions,
+                requestData
             );
             
             console.log('AI recipes generated:', this.currentMealPlan);
@@ -855,6 +926,7 @@ class FamilyBudgetMealsApp {
         const form = document.getElementById('meal-planner-form');
         if (!form) return;
 
+        // Basic fields
         const fields = ['weeklyBudget', 'adults', 'kids', 'kidAges', 'zipcode', 'mealsCount', 'allergies'];
         fields.forEach(field => {
             const element = form.querySelector(`[name="${field}"]`);
@@ -864,6 +936,141 @@ class FamilyBudgetMealsApp {
                 element.value = params[paramKey];
             }
         });
+
+        // Breakfast fields
+        ['breakfastDays', 'breakfastPeople', 'breakfastCount'].forEach(field => {
+            const element = form.querySelector(`[name="${field}"]`);
+            if (element && params[field] !== undefined) {
+                element.value = params[field];
+            }
+        });
+
+        // Lunch fields
+        ['lunchDays', 'lunchPeople', 'lunchCount'].forEach(field => {
+            const element = form.querySelector(`[name="${field}"]`);
+            if (element && params[field] !== undefined) {
+                element.value = params[field];
+            }
+        });
+
+        // Dinner fields
+        ['dinnerDays', 'dinnerPeople', 'dinnerCount'].forEach(field => {
+            const element = form.querySelector(`[name="${field}"]`);
+            if (element && params[field] !== undefined) {
+                element.value = params[field];
+            }
+        });
+
+        // Cuisine preferences
+        if (params.cuisinePreferences && Array.isArray(params.cuisinePreferences)) {
+            params.cuisinePreferences.forEach(cuisine => {
+                const checkbox = form.querySelector(`[name="${cuisine}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+
+        // Cooking skill and health focus
+        if (params.cookingSkill) {
+            const skillSelect = form.querySelector('[name="cookingSkill"]');
+            if (skillSelect) skillSelect.value = params.cookingSkill;
+        }
+
+        if (params.healthFocus) {
+            const healthSelect = form.querySelector('[name="healthFocus"]');
+            if (healthSelect) healthSelect.value = params.healthFocus;
+        }
+    }
+
+    // Save settings to localStorage
+    saveSettings() {
+        const form = document.getElementById('meal-planner-form');
+        if (!form) return;
+
+        const formData = new FormData(form);
+        const settings = {
+            weeklyBudget: formData.get('weeklyBudget'),
+            adults: formData.get('adults'),
+            kids: formData.get('kids'),
+            kidAges: formData.get('kidAges'),
+            zipCode: formData.get('zipcode'),
+            mealsCount: formData.get('mealsCount'),
+            allergies: formData.get('allergies'),
+            breakfastDays: formData.get('breakfastDays'),
+            breakfastPeople: formData.get('breakfastPeople'),
+            breakfastCount: formData.get('breakfastCount'),
+            lunchDays: formData.get('lunchDays'),
+            lunchPeople: formData.get('lunchPeople'),
+            lunchCount: formData.get('lunchCount'),
+            dinnerDays: formData.get('dinnerDays'),
+            dinnerPeople: formData.get('dinnerPeople'),
+            dinnerCount: formData.get('dinnerCount'),
+            cookingSkill: formData.get('cookingSkill'),
+            healthFocus: formData.get('healthFocus'),
+            cuisinePreferences: []
+        };
+
+        // Collect cuisine preferences
+        ['american', 'italian', 'mexican', 'asian', 'mediterranean', 'comfort'].forEach(cuisine => {
+            if (formData.get(cuisine)) {
+                settings.cuisinePreferences.push(cuisine);
+            }
+        });
+
+        localStorage.setItem('familyMealSettings', JSON.stringify(settings));
+        this.showMessage('✅ Settings saved successfully!');
+        console.log('Settings saved:', settings);
+    }
+
+    // Load settings from localStorage
+    loadSettings() {
+        const savedSettings = localStorage.getItem('familyMealSettings');
+        if (!savedSettings) {
+            this.showMessage('ℹ️ No saved settings found');
+            return;
+        }
+
+        try {
+            const settings = JSON.parse(savedSettings);
+            this.populateForm(settings);
+            this.showMessage('✅ Settings loaded successfully!');
+            console.log('Settings loaded:', settings);
+        } catch (error) {
+            console.error('Failed to load settings:', error);
+            this.showMessage('❌ Failed to load settings');
+        }
+    }
+
+    // Show temporary message
+    showMessage(message) {
+        // Create or get message element
+        let msgEl = document.getElementById('temp-message');
+        if (!msgEl) {
+            msgEl = document.createElement('div');
+            msgEl.id = 'temp-message';
+            msgEl.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(msgEl);
+        }
+
+        msgEl.textContent = message;
+        msgEl.style.display = 'block';
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            msgEl.style.display = 'none';
+        }, 3000);
     }
 
     // Save individual recipe
@@ -1216,20 +1423,17 @@ class FamilyBudgetMealsApp {
         if (listName === null) return; // User cancelled
 
         try {
-            const savedLists = JSON.parse(localStorage.getItem('familyBudgetMeals_savedShoppingLists') || '[]');
+            // Format shopping list items
+            const formattedData = this.shoppingListGenerator.formatForDisplay(this.currentShoppingList);
             
-            const shoppingListToSave = {
-                id: this.generateId(),
-                name: listName,
-                items: this.shoppingListGenerator.formatForDisplay(this.currentShoppingList).items,
-                totalCost: this.currentShoppingList.totals.totalCost,
-                zipCode: this.userParams.zipCode,
-                savedDate: new Date().toISOString(),
-                checkedItems: JSON.parse(localStorage.getItem('shoppingList_checkedItems') || '{}')
-            };
-
-            savedLists.push(shoppingListToSave);
-            localStorage.setItem('familyBudgetMeals_savedShoppingLists', JSON.stringify(savedLists));
+            // Use the new ShoppingListManager
+            this.shoppingListManager.saveShoppingList(
+                listName,
+                formattedData.items,
+                this.currentShoppingList.totals.totalCost,
+                `${this.userParams.mealsCount || 'N/A'} meals`,
+                this.userParams.zipCode
+            );
             
             this.showMessage(`Shopping list "${listName}" saved successfully!`, 'success');
         } catch (error) {

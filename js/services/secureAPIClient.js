@@ -10,19 +10,22 @@ class SecureAPIClient {
     }
 
     // Generate AI recipes using secure backend
-    async generateHealthyRecipes(familySize, budget, zipCode, dietaryRestrictions = []) {
+    async generateHealthyRecipes(familySize, budget, zipCode, dietaryRestrictions = [], requestData = null) {
         try {
+            // Use requestData if provided, otherwise use legacy parameters
+            const payload = requestData || {
+                familySize,
+                budget,
+                zipCode,
+                dietaryRestrictions
+            };
+
             const response = await fetch(`${this.baseUrl}/functions/generate-recipes`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    familySize,
-                    budget,
-                    zipCode,
-                    dietaryRestrictions
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {

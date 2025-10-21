@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Test - Family Budget Meals</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        .checklist li {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #4CAF50;
+            cursor: pointer;
+        }
+        .checklist li:hover {
+            background: #e8f5e9;
+        }
+        .checklist input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Family Budget Meals - Feature Testing</h1>
+    
+    <div class="test-section">
+        <h2>✅ Implementation Status</h2>
+        <p><span class="status complete">COMPLETE</span> All features have been implemented!</p>
+        <div class="alert alert-info">
+            <strong>Ready for Testing:</strong> Open the main application and follow the test checklist below.
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Test Checklist</h2>
+        
+        <h3>1. Settings Persistence</h3>
+        <ul class="checklist">
+            <li><input type="checkbox"> Fill out all form fields (budget, people, meals)</li>
+            <li><input type="checkbox"> Click "Save Settings" button</li>
+            <li><input type="checkbox"> Refresh the page (F5)</li>
+            <li><input type="checkbox"> Click "Load Settings" button</li>
+            <li><input type="checkbox"> Verify all fields are populated correctly</li>
+            <li><input type="checkbox"> Check toast message appears</li>
+        </ul>
+
+        <h3>2. Breakfast/Lunch/Dinner Sections</h3>
+        <ul class="checklist">
+            <li><input type="checkbox"> Set breakfast: 7 days, 2 people, 3 recipes</li>
+            <li><input type="checkbox"> Set lunch: 5 days, 1 person, 2 recipes</li>
+            <li><input type="checkbox"> Set dinner: 7 days, 4 people, 5 recipes</li>
+            <li><input type="checkbox"> Select cuisine preferences (e.g., Italian, Asian)</li>
+            <li><input type="checkbox"> Choose cooking skill level</li>
+            <li><input type="checkbox"> Select health focus</li>
+            <li><input type="checkbox"> Generate meal plan</li>
+            <li><input type="checkbox"> Verify AI creates separate breakfast/lunch/dinner recipes</li>
+        </ul>
+
+        <h3>3. Shopping List Manager</h3>
+        <ul class="checklist">
+            <li><input type="checkbox"> Generate a meal plan</li>
+            <li><input type="checkbox"> Save shopping list with custom name</li>
+            <li><input type="checkbox"> Click "View Saved Lists" button</li>
+            <li><input type="checkbox"> Verify list appears in modal</li>
+            <li><input type="checkbox"> Check/uncheck items (verify progress bar updates)</li>
+            <li><input type="checkbox"> Download list as text file</li>
+            <li><input type="checkbox"> Print list (check print preview)</li>
+            <li><input type="checkbox"> Delete list with confirmation dialog</li>
+        </ul>
+
+        <h3>4. Product Descriptions</h3>
+        <ul class="checklist">
+            <li><input type="checkbox"> Generate meal plan</li>
+            <li><input type="checkbox"> Open shopping list</li>
+            <li><input type="checkbox"> Verify NO vague items (no "3 slices" or "0.63 oz")</li>
+            <li><input type="checkbox"> Check all items have specific sizes (e.g., "16 oz bag")</li>
+            <li><input type="checkbox"> Verify brand-style descriptions</li>
+            <li><input type="checkbox"> Check spices have jar sizes (e.g., "2.5 oz jar")</li>
+        </ul>
+
+        <h3>5. AI Creativity (No Repetition)</h3>
+        <ul class="checklist">
+            <li><input type="checkbox"> Generate meal plan #1 (note recipes)</li>
+            <li><input type="checkbox"> Generate meal plan #2 (verify different recipes)</li>
+            <li><input type="checkbox"> Generate meal plan #3 (verify different recipes)</li>
+            <li><input type="checkbox"> Confirm no repetitive meals across generations</li>
+            <li><input type="checkbox"> Check recipes match cuisine preferences</li>
+        </ul>
+
+        <h3>6. Mobile Responsiveness</h3>
+        <ul class="checklist">
+            <li><input type="checkbox"> Open DevTools (F12) and toggle device toolbar</li>
+            <li><input type="checkbox"> Test on mobile viewport (375px width)</li>
+            <li><input type="checkbox"> Verify settings buttons stack vertically</li>
+            <li><input type="checkbox"> Check form sections are single column</li>
+            <li><input type="checkbox"> Test shopping list modal on mobile</li>
+            <li><input type="checkbox"> Verify all buttons are touch-friendly</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>📁 Files Changed</h2>
+        <ul>
+            <li><strong>Created:</strong> <code>/js/utils/shoppingListManager.js</code> (300+ lines)</li>
+            <li><strong>Modified:</strong> <code>/functions/generate-recipes.js</code> (buildRecipePrompt, parseAIMealPlan)</li>
+            <li><strong>Modified:</strong> <code>/index.html</code> (expanded form, settings buttons)</li>
+            <li><strong>Modified:</strong> <code>/styles/main.css</code> (+450 lines new styles)</li>
+            <li><strong>Modified:</strong> <code>/js/app.js</code> (settings persistence, form handling)</li>
+            <li><strong>Modified:</strong> <code>/js/services/secureAPIClient.js</code> (expanded parameters)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🚀 Quick Actions</h2>
+        <button class="btn" onclick="window.location.href='index.html'">Open Main App</button>
+        <button class="btn btn-secondary" onclick="localStorage.clear(); alert('LocalStorage cleared!')">Clear Storage</button>
+        <button class="btn btn-secondary" onclick="window.print()">Print This Page</button>
+    </div>
+
+    <div class="test-section">
+        <h2>💾 LocalStorage Inspection</h2>
+        <p>Open browser DevTools (F12) → Application → Local Storage to inspect:</p>
+        <ul>
+            <li><code>familyMealSettings</code> - Saved form settings</li>
+            <li><code>savedShoppingLists</code> - Saved shopping lists array</li>
+        </ul>
+        <button class="btn" onclick="showLocalStorage()">Show Current Storage</button>
+        <pre id="storage-output" style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 10px; display: none;"></pre>
+    </div>
+
+    <script>
+        // Track completed tests
+        document.querySelectorAll('.checklist input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', updateProgress);
+        });
+
+        function updateProgress() {
+            const total = document.querySelectorAll('.checklist input[type="checkbox"]').length;
+            const checked = document.querySelectorAll('.checklist input[type="checkbox"]:checked').length;
+            const percent = Math.round((checked / total) * 100);
+            
+            document.title = `[${percent}%] Feature Test - Family Budget Meals`;
+            
+            if (percent === 100) {
+                alert('🎉 All tests completed! Great job!');
+            }
+        }
+
+        function showLocalStorage() {
+            const output = document.getElementById('storage-output');
+            const data = {
+                settings: localStorage.getItem('familyMealSettings'),
+                shoppingLists: localStorage.getItem('savedShoppingLists')
+            };
+            
+            output.textContent = JSON.stringify(data, null, 2);
+            output.style.display = 'block';
+        }
+
+        // Load saved progress
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('testProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                document.querySelectorAll('.checklist input[type="checkbox"]').forEach((checkbox, index) => {
+                    if (progress[index]) {
+                        checkbox.checked = true;
+                    }
+                });
+                updateProgress();
+            }
+        });
+
+        // Save progress
+        window.addEventListener('beforeunload', () => {
+            const progress = {};
+            document.querySelectorAll('.checklist input[type="checkbox"]').forEach((checkbox, index) => {
+                progress[index] = checkbox.checked;
+            });
+            localStorage.setItem('testProgress', JSON.stringify(progress));
+        });
+    </script>
+</body>
+</html>
